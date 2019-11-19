@@ -9,12 +9,11 @@ class SplashScreenMode(Mode):
         canvas.create_text(mode.width/2, 150, \
             text='Pac Man', font=font, fill="white")
         canvas.create_text(mode.width/2, 200, \
-            text='This is a modal splash screen!',font=font,fill="white")
-        canvas.create_text(mode.width/2, 250, \
-            text='Press any key for the game!',font=font,fill="white")
+            text='Press space to start!',font=font,fill="white")
 
     def keyPressed(mode,event):
-        mode.app.setActiveMode(mode.app.gameMode)
+        if event.key=="Space":
+            mode.app.setActiveMode(mode.app.gameMode)
 
 class PacMan(object):
     def __init__(self,x,y):
@@ -125,28 +124,34 @@ class OriginalGameMode(Mode):
         mode.wallWidth,mode.wallHeight=50,250
         mode.dxPos,mode.dyPos=-5,0
         mode.direction="left"
-        mode.gameBoard=OriginalBoard(mode.wallX,mode.wallY,mode.wallWidth,mode.wallHeight)
+        mode.gameBoard=OriginalBoard(mode.wallX,mode.wallY,\
+            mode.wallWidth,mode.wallHeight)
         mode.points=[]
         mode.drawCoins()
         mode.score=0
+        mode.gameOver=False
 
     def keyPressed(mode,event):
-        if event.key=="Right":
-            mode.direction="right"
-            mode.dxPos=+5
-            mode.movePacMan(mode.dxPos,0)
-        elif event.key=="Left":
-            mode.direction="left"
-            mode.dxPos=-5
-            mode.movePacMan(mode.dxPos,0)
-        elif event.key=="Up":
-            mode.direction="up"
-            mode.dyPos=-5
-            mode.movePacMan(0,mode.dyPos)
-        elif event.key=="Down":
-            mode.direction="down"
-            mode.dyPos=+5
-            mode.movePacMan(0,mode.dyPos)
+        if mode.gameOver==False:
+            if event.key=="Right":
+                mode.direction="right"
+                mode.dxPos=+5
+                mode.movePacMan(mode.dxPos,0)
+            elif event.key=="Left":
+                mode.direction="left"
+                mode.dxPos=-5
+                mode.movePacMan(mode.dxPos,0)
+            elif event.key=="Up":
+                mode.direction="up"
+                mode.dyPos=-5
+                mode.movePacMan(0,mode.dyPos)
+            elif event.key=="Down":
+                mode.direction="down"
+                mode.dyPos=+5
+                mode.movePacMan(0,mode.dyPos)
+        else:
+            if event.key=="r":
+                mode.appStarted()
 
     def timerFired(mode):
         if mode.legalPlaces("y"):
@@ -155,6 +160,16 @@ class OriginalGameMode(Mode):
             mode.movePacMan(0,mode.dyPos)
         mode.pacmanXPos+=mode.dxPos
         mode.pacmanYPos+=mode.dyPos
+        i=0
+        while i<len(mode.points):
+            if ((mode.points[i].x-mode.pacmanXPos)**2+\
+                (mode.points[i].y-mode.pacmanYPos)**2)**0.5\
+                <mode.points[i].radius+mode.radius:
+                mode.points.pop(i)
+                mode.score+=1
+                if len(mode.points)==0:
+                    mode.gameOver=True
+            i+=1
 
     def movePacMan(mode,dx,dy):
         mode.dxPos=dx
@@ -178,36 +193,48 @@ class OriginalGameMode(Mode):
                             (mode.pacmanXPos+mode.radius==wall[0] and \
                                 mode.direction=="right"):
                                 return True
-            else:
-                return False
 
     def drawCoins(mode):
-        for x in range(30,720,40):
-            for y in range(30,480,40):
+        for x in range(50,750,50):
+            for y in range(50,500,50):
                 mode.points.append(Points(x,y))
-        for wall in mode.gameBoard.dimensions:
-            if not (x>=wall[0] and x<=wall[0]+wall[2] and \
-                y<=wall[1]+wall[3] and y>=wall[1]):
-                pass
+        i=0
+        while i < len(mode.points):
+            for wall in mode.gameBoard.dimensions:
+                if (mode.points[i].x>wall[0] and \
+                    mode.points[i].x<wall[0]+wall[2] and \
+                        mode.points[i].y<wall[1]+wall[3] and \
+                            mode.points[i].y>wall[1]):
+                            mode.points.pop(i)
+            i+=1
 
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
-        mode.gameBoard.drawBoard(canvas)
-        for coin in mode.points:
-            coin.drawPoints(canvas)
-        Blinky(mode.ghostXPos-30,mode.ghostYPos).drawGhost(canvas)
-        Pinky(mode.ghostXPos-10,mode.ghostYPos).drawGhost(canvas)
-        Inky(mode.ghostXPos+10,mode.ghostYPos).drawGhost(canvas)
-        Clyde(mode.ghostXPos+30,mode.ghostYPos).drawGhost(canvas)
-        PacMan(mode.pacmanXPos,mode.pacmanYPos).drawPacMan(canvas)
-        canvas.create_text(mode.width//2,15,text=f'Score: {mode.score}',\
-            fill="white")
+        if mode.gameOver==False:
+            mode.gameBoard.drawBoard(canvas)
+            for coin in mode.points:
+                coin.drawPoints(canvas)
+            Blinky(mode.ghostXPos-30,mode.ghostYPos).drawGhost(canvas)
+            Pinky(mode.ghostXPos-10,mode.ghostYPos).drawGhost(canvas)
+            Inky(mode.ghostXPos+10,mode.ghostYPos).drawGhost(canvas)
+            Clyde(mode.ghostXPos+30,mode.ghostYPos).drawGhost(canvas)
+            PacMan(mode.pacmanXPos,mode.pacmanYPos).drawPacMan(canvas)
+            canvas.create_text(mode.width//2,15,text=f'Score:{mode.score}',\
+                fill="white")
+        else:
+            font = 'Arial 26 bold'
+            canvas.create_text(mode.width//2,mode.height//2, 
+            text='Game Over!', font=font, fill="white")
+            canvas.create_text(mode.width//2,3*mode.height//4, 
+            text=f'Your score:{mode.score}',font=font,fill="white")
+            canvas.create_text(mode.width//2,5*mode.height//6, 
+            text='Press r to restart',font=font,fill="white")
 
 class MyModalApp(ModalApp):
     def appStarted(app):
-        app.splashScreenMode = SplashScreenMode()
-        app.gameMode = OriginalGameMode()
+        app.splashScreenMode=SplashScreenMode()
+        app.gameMode=OriginalGameMode()
         app.setActiveMode(app.splashScreenMode)
-        app.timerDelay = 50
+        app.timerDelay=50
 
 app = MyModalApp(width=750, height=500)
