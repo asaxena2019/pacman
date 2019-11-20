@@ -18,7 +18,7 @@ class SplashScreenMode(Mode):
             mode.app.setActiveMode(mode.app.gameMode)
 
     #will add buttons to determine mode
-    def mousePressed(mode):
+    def mousePressed(mode,event):
         pass
 
 # Pac-Man class defines characteristics of Pac-Man and draws Pac-Man
@@ -93,6 +93,8 @@ class OriginalBoard(Wall):
         self.ratio3=7/15
         self.ratio4=11/15
         self.ratio5=4/5
+        self.heightRatio=1.9
+        self.widthRatio=0.98
         #1
         wall11=Wall(self.x,self.y,self.width,self.height)
         #5
@@ -122,13 +124,17 @@ class OriginalBoard(Wall):
         wall24=Wall(self.x+self.ratio4*mode.width,self.y+2*mode.height/5,\
             self.width*2,self.height//5)
         #right wall
-        rightWall=Wall(10,10,5,475)
+        rightWall=Wall(self.x/5,self.y/10,self.width/10,\
+            self.height*self.heightRatio)
         #left wall
-        leftWall=Wall(735,10,5,475)
+        leftWall=Wall(mode.width-3*self.width/10,self.y/10,self.width/10,\
+            self.height*self.heightRatio)
         #top wall
-        topWall=Wall(10,10,730,5)
+        topWall=Wall(self.x/5,self.y/10,mode.width-2*self.width/5,\
+            self.height/50)
         #bottom wall
-        bottomWall=Wall(10,485,730,5)
+        bottomWall=Wall(self.x/5,mode.height-self.height/10+self.width/10,\
+            mode.width-2*self.width/5,self.height/50)
         self.board=[wall11,wall51,wall52,wall53,wall54,wallDash,wall12,wall13,\
             wall21,wall22,wall23,wall24,rightWall,leftWall,topWall,bottomWall]
         self.dimensions=set()
@@ -253,10 +259,10 @@ class OriginalGameMode(Mode):
             mode.gameBoard.drawBoard(canvas)
             for coin in mode.points:
                 coin.drawPoints(canvas)
-            Blinky(mode.ghostXPos-30,mode.ghostYPos).drawGhost(canvas)
-            Pinky(mode.ghostXPos-10,mode.ghostYPos).drawGhost(canvas)
-            Inky(mode.ghostXPos+10,mode.ghostYPos).drawGhost(canvas)
-            Clyde(mode.ghostXPos+30,mode.ghostYPos).drawGhost(canvas)
+            Blinky(mode.ghostXPos-mode.width/25,mode.ghostYPos).drawGhost(canvas)
+            Pinky(mode.ghostXPos-mode.width/75,mode.ghostYPos).drawGhost(canvas)
+            Inky(mode.ghostXPos+mode.width/75,mode.ghostYPos).drawGhost(canvas)
+            Clyde(mode.ghostXPos+mode.width/25,mode.ghostYPos).drawGhost(canvas)
             PacMan(mode.pacmanXPos,mode.pacmanYPos).drawPacMan(canvas)
             canvas.create_text(mode.width//2,15,text=f'Score:{mode.score}',\
                 fill="white")
