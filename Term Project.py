@@ -2,6 +2,8 @@ from cmu_112_graphics import *
 from tkinter import *
 import random
 
+#CITE cmu graphics and tkinter
+
 # CITATION: http://www.cs.cmu.edu/~112/notes/notes-animations-part2.html
 # #subclassingModalApp
 class SplashScreenMode(Mode):
@@ -101,8 +103,6 @@ class Wall(Mode):
 class OriginalBoard(Wall):
     def __init__(self,mode,x,y,width,height):
         super().__init__(x,y,width,height)
-        # mode.wallX,mode.wallY=5,5
-        # mode.wallWidth,mode.wallHeight=5,5
         self.ratio1=50/mode.width
         #right wall
         rightWall=Wall(2*self.x,2*self.y,self.width,\
@@ -143,9 +143,8 @@ class OriginalBoard(Wall):
             20*self.height)
         wall24=Wall(100*self.x+2*self.ratio1*mode.width,20*self.y+40*self.height,20*self.width,\
             10*self.height)
-        #self.board=[wall11,wall51,wall52,wall53,wall54,wallDash,wall12,wall13,wall21,wall22,wall23,wall24,\
-            #rightWall,leftWall,topWall,bottomWall]
-        self.board=[wall11]
+        self.board=[wall11,wall51,wall52,wall53,wall54,wallDash,wall12,wall13,\
+            wall21,wall22,wall23,wall24,rightWall,leftWall,topWall,bottomWall]
         self.dimensions=set()
         for wall in self.board:
             self.dimensions.add((wall.x,wall.y,wall.width,wall.height))
@@ -175,7 +174,7 @@ class OriginalGameMode(Mode):
         mode.dxPos,mode.dyPos=-5,0
         mode.currDirection="left"
         mode.direction=mode.currDirection
-        mode.legalDirections=["right","left","up","down"]
+        mode.legalDirections=["up","right","down","left"]
         mode.gameBoard=OriginalBoard(mode,mode.wallX,mode.wallY,\
             mode.wallWidth,mode.wallHeight)
         mode.points=[]
@@ -237,25 +236,24 @@ class OriginalGameMode(Mode):
         mode.dyPos=dy
 
     def legalPlaces(mode):
+        mode.legalDirections=["up","right","down","left"]
         for wall in mode.gameBoard.dimensions:
             if mode.pacmanXPos+mode.radius>wall[0] and \
                 mode.pacmanXPos-mode.radius<wall[0]+wall[2]:
-                if (mode.pacmanYPos-mode.radius==wall[1]+wall[3]):
-                    mode.legalDirections=["right","down","left"]
-                elif (mode.pacmanYPos+mode.radius==wall[1]):
-                    mode.legalDirections=["right","up","left"]
-                else:
-                    mode.legalDirections=["up","down","left","right"]
+                if (mode.pacmanYPos>wall[1]+wall[3] and mode.pacmanYPos-mode.radius<=wall[1]+wall[3]):
+                    if "up" in mode.legalDirections:
+                        mode.legalDirections.remove("up")
+                elif (mode.pacmanYPos<wall[1] and mode.pacmanYPos+mode.radius>=wall[1]):
+                    if "down" in mode.legalDirections:
+                        mode.legalDirections.remove("down")
             elif mode.pacmanYPos+mode.radius>wall[1] and \
                 mode.pacmanYPos-mode.radius<wall[1]+wall[3]:
-                if (mode.pacmanXPos-mode.radius==wall[0]+wall[2]):
-                    mode.legalDirections=["right","down","up"]
-                elif (mode.pacmanXPos+mode.radius==wall[0]):
-                    mode.legalDirections=["up","down","left"]
-                else:
-                    mode.legalDirections=["up","down","left","right"]
-            else:
-                mode.legalDirections=["up","down","left","right"]
+                if (mode.pacmanXPos>wall[0]+wall[2] and mode.pacmanXPos-mode.radius<=wall[0]+wall[2]):
+                    if "left" in mode.legalDirections:
+                        mode.legalDirections.remove("left")
+                elif (mode.pacmanXPos<wall[0] and mode.pacmanXPos+mode.radius>=wall[0]):
+                    if "right" in mode.legalDirections:
+                        mode.legalDirections.remove("right")
         return mode.legalDirections
 
     def drawCoins(mode):
