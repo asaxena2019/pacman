@@ -167,11 +167,13 @@ class Points(object):
 class OriginalGameMode(Mode):
     def appStarted(mode):
         mode.radius=10
+        mode.pointRadius=5
         mode.pacmanXPos,mode.pacmanYPos=mode.width/2,4*mode.height/5
         mode.ghostXPos,mode.ghostYPos=325,225
         mode.wallX,mode.wallY=mode.width/150,mode.height/100
         mode.wallWidth,mode.wallHeight=mode.width/150,mode.height/100
-        mode.dxPos,mode.dyPos=-5,0
+        mode.speed=5
+        mode.dxPos,mode.dyPos=-1*mode.speed,0
         mode.currDirection="left"
         mode.direction=mode.currDirection
         mode.legalDirections=["up","right","down","left"]
@@ -204,13 +206,13 @@ class OriginalGameMode(Mode):
 
     def movePacMan(mode,direction):
         if direction=="right":
-            mode.dirPacMan(+5,0)
+            mode.dirPacMan(mode.speed,0)
         elif direction=="left":
-            mode.dirPacMan(-5,0)
+            mode.dirPacMan(-1*mode.speed,0)
         elif direction=="up":
-            mode.dirPacMan(0,-5)
+            mode.dirPacMan(0,-1*mode.speed)
         elif direction=="down":
-            mode.dirPacMan(0,+5)
+            mode.dirPacMan(0,mode.speed)
 
     def timerFired(mode):
         if mode.gameOver==False:
@@ -246,7 +248,7 @@ class OriginalGameMode(Mode):
                 elif (mode.pacmanYPos<wall[1] and mode.pacmanYPos+mode.radius>=wall[1]):
                     if "down" in mode.legalDirections:
                         mode.legalDirections.remove("down")
-            elif mode.pacmanYPos+mode.radius>wall[1] and \
+            if mode.pacmanYPos+mode.radius>wall[1] and \
                 mode.pacmanYPos-mode.radius<wall[1]+wall[3]:
                 if (mode.pacmanXPos>wall[0]+wall[2] and mode.pacmanXPos-mode.radius<=wall[0]+wall[2]):
                     if "left" in mode.legalDirections:
@@ -257,8 +259,8 @@ class OriginalGameMode(Mode):
         return mode.legalDirections
 
     def drawCoins(mode):
-        for x in range(50,750,50):
-            for y in range(50,500,50):
+        for x in range(int(mode.wallX*10),int(mode.width-3*mode.wallWidth),int(mode.wallX*10)):
+            for y in range(int(mode.wallY*10),int(mode.height-3*mode.wallHeight),int(mode.wallY*10)):
                 mode.points.append(Points(x,y))
         i=0
         while i < len(mode.points):
@@ -267,7 +269,7 @@ class OriginalGameMode(Mode):
                     mode.points[i].x<wall[0]+wall[2] and \
                         mode.points[i].y<wall[1]+wall[3] and \
                             mode.points[i].y>wall[1]):
-                            mode.points.pop(i)
+                                    mode.points.pop(i)
             i+=1
 
     def redrawAll(mode,canvas):
