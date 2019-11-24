@@ -55,21 +55,34 @@ class Blinky(Ghost):
     def __init__(self,x,y):
         super().__init__(x,y)
         self.color="red"
+    def moveGhost(self):
+        pass
+    # follows the shortest path to get to Pac-Man
 
 class Pinky(Ghost):
     def __init__(self,x,y):
         super().__init__(x,y)
         self.color="pink"
+    def moveGhost(self):
+        pass
+    # follows the path to get to four tiles to the right or left of Pac-Man
 
 class Inky(Ghost):
     def __init__(self,x,y):
         super().__init__(x,y)
         self.color="aqua"
+    def moveGhost(self):
+        pass
+    # follows the shortest path from Blinky to two tiles next to Pac-Man and 
+    # doubles length in that direction
 
 class Clyde(Ghost):
     def __init__(self,x,y):
         super().__init__(x,y)
         self.color="orange"
+    def moveGhost(self):
+        pass
+    # if less than 8 tiles away from Pac-Man, random mode but if not, same algorithm as Blinky
 
 # Wall class defines characteristics of walls and draws walls
 class Wall(Mode):
@@ -88,55 +101,51 @@ class Wall(Mode):
 class OriginalBoard(Wall):
     def __init__(self,mode,x,y,width,height):
         super().__init__(x,y,width,height)
-        self.ratio1=2/15
-        self.ratio2=3/10
-        self.ratio3=7/15
-        self.ratio4=11/15
-        self.ratio5=4/5
-        self.heightRatio=1.9
-        self.widthRatio=0.98
-        #1
-        wall11=Wall(self.x,self.y,self.width,self.height)
-        #5
-        wall51=Wall(self.x+self.ratio1*mode.width,self.y,self.width*2,\
-            self.height/5)
-        wall52=Wall(self.x+self.ratio1*mode.width,self.y+mode.height/10,\
-            self.width,2*self.height/5)
-        wall53=Wall(self.x+mode.width/5,self.y+mode.height/5,self.width,\
-            2*self.height/5)
-        wall54=Wall(self.x+self.ratio1*mode.width,self.y+2*mode.height/5,\
-            self.width*2,self.height/5)
-        #dash
-        wallDash=Wall(self.x+self.ratio2*mode.width,self.y+mode.height/5,\
-            self.width*2,self.height//5)
-        #1
-        wall12=Wall(self.x+self.ratio3*mode.width,self.y,self.width,self.height)
-        #1
-        wall13=Wall(self.x+2*self.ratio2*mode.width,self.y,self.width,\
-            self.height)
-        #2
-        wall21=Wall(self.x+self.ratio4*mode.width,self.y,self.width*2,\
-            self.height//5)
-        wall22=Wall(self.x+self.ratio5*mode.width,self.y+mode.height/10,\
-            self.width,2*self.height//5)
-        wall23=Wall(self.x+self.ratio4*mode.width,self.y+mode.height/5,\
-            self.width,2*self.height//5)
-        wall24=Wall(self.x+self.ratio4*mode.width,self.y+2*mode.height/5,\
-            self.width*2,self.height//5)
+        # mode.wallX,mode.wallY=5,5
+        # mode.wallWidth,mode.wallHeight=5,5
+        self.ratio1=50/mode.width
         #right wall
-        rightWall=Wall(self.x/5,self.y/10,self.width/10,\
-            self.height*self.heightRatio)
+        rightWall=Wall(2*self.x,2*self.y,self.width,\
+            mode.height-4*self.height)
         #left wall
-        leftWall=Wall(mode.width-3*self.width/10,self.y/10,self.width/10,\
-            self.height*self.heightRatio)
+        leftWall=Wall(mode.width-3*self.x,2*self.y,self.width,\
+            mode.height-4*self.height)
         #top wall
-        topWall=Wall(self.x/5,self.y/10,mode.width-2*self.width/5,\
-            self.height/50)
+        topWall=Wall(2*self.x,2*self.y,mode.width-4*self.width,\
+            self.height)
         #bottom wall
-        bottomWall=Wall(self.x/5,mode.height-self.height/10+self.width/10,\
-            mode.width-2*self.width/5,self.height/50)
-        self.board=[wall11,wall51,wall52,wall53,wall54,wallDash,wall12,wall13,\
-            wall21,wall22,wall23,wall24,rightWall,leftWall,topWall,bottomWall]
+        bottomWall=Wall(2*self.x,mode.height-3*self.y,mode.width-4*self.width,\
+            self.height)
+        #1
+        wall11=Wall(10*self.x,20*self.y,10*self.width,50*self.height)
+        #5
+        wall51=Wall(10*self.x+2*self.ratio1*mode.width,20*self.y,20*self.width,\
+            10*self.height)
+        wall52=Wall(10*self.x+2*self.ratio1*mode.width,20*self.y+10*self.height,\
+            10*self.width,20*self.height)
+        wall53=Wall(20*self.x+2*self.ratio1*mode.width,20*self.y+20*self.height,10*self.width,\
+            20*self.height)
+        wall54=Wall(10*self.x+2*self.ratio1*mode.width,20*self.y+40*self.height,20*self.width,\
+            10*self.height)
+        #dash 
+        wallDash=Wall(10*self.x+45*self.width,20*self.y+20*self.width,\
+            20*self.width,10*self.height)
+        #1
+        wall12=Wall(80*self.x,20*self.y,10*self.width,50*self.height)
+        #1
+        wall13=Wall(100*self.x,20*self.y,10*self.width,50*self.height)
+        #2
+        wall21=Wall(100*self.x+2*self.ratio1*mode.width,20*self.y,20*self.width,\
+            10*self.height)
+        wall22=Wall(110*self.x+2*self.ratio1*mode.width,20*self.y+10*self.height,\
+            10*self.width,20*self.height)
+        wall23=Wall(100*self.x+2*self.ratio1*mode.width,20*self.y+20*self.height,10*self.width,\
+            20*self.height)
+        wall24=Wall(100*self.x+2*self.ratio1*mode.width,20*self.y+40*self.height,20*self.width,\
+            10*self.height)
+        #self.board=[wall11,wall51,wall52,wall53,wall54,wallDash,wall12,wall13,wall21,wall22,wall23,wall24,\
+            #rightWall,leftWall,topWall,bottomWall]
+        self.board=[wall11]
         self.dimensions=set()
         for wall in self.board:
             self.dimensions.add((wall.x,wall.y,wall.width,wall.height))
@@ -159,12 +168,14 @@ class Points(object):
 class OriginalGameMode(Mode):
     def appStarted(mode):
         mode.radius=10
-        mode.pacmanXPos,mode.pacmanYPos=mode.width//2,4*mode.height//5
+        mode.pacmanXPos,mode.pacmanYPos=mode.width/2,4*mode.height/5
         mode.ghostXPos,mode.ghostYPos=325,225
-        mode.wallX,mode.wallY=50,100
-        mode.wallWidth,mode.wallHeight=50,250
+        mode.wallX,mode.wallY=mode.width/150,mode.height/100
+        mode.wallWidth,mode.wallHeight=mode.width/150,mode.height/100
         mode.dxPos,mode.dyPos=-5,0
-        mode.direction="left"
+        mode.currDirection="left"
+        mode.direction=mode.currDirection
+        mode.legalDirections=["right","left","up","down"]
         mode.gameBoard=OriginalBoard(mode,mode.wallX,mode.wallY,\
             mode.wallWidth,mode.wallHeight)
         mode.points=[]
@@ -176,33 +187,38 @@ class OriginalGameMode(Mode):
         if mode.gameOver==False:
             if event.key=="Right":
                 mode.direction="right"
-                mode.dxPos=+5
-                mode.movePacMan(mode.dxPos,0)
             elif event.key=="Left":
                 mode.direction="left"
-                mode.dxPos=-5
-                mode.movePacMan(mode.dxPos,0)
             elif event.key=="Up":
                 mode.direction="up"
-                mode.dyPos=-5
-                mode.movePacMan(0,mode.dyPos)
             elif event.key=="Down":
                 mode.direction="down"
-                mode.dyPos=+5
-                mode.movePacMan(0,mode.dyPos)
+            if mode.direction in mode.legalDirections:
+                mode.currDirection=mode.direction
+                mode.movePacMan(mode.currDirection)
+            else:
+                mode.movePacMan(mode.currDirection)
         else:
             if event.key=="r":
                 mode.appStarted()
                 mode.gameOver=False
 
+    def movePacMan(mode,direction):
+        if direction=="right":
+            mode.dirPacMan(+5,0)
+        elif direction=="left":
+            mode.dirPacMan(-5,0)
+        elif direction=="up":
+            mode.dirPacMan(0,-5)
+        elif direction=="down":
+            mode.dirPacMan(0,+5)
+
     def timerFired(mode):
         if mode.gameOver==False:
-            if mode.illegalPlaces("y"):
-                mode.movePacMan(mode.dxPos,0)
-            if mode.illegalPlaces("x"):
-                mode.movePacMan(0,mode.dyPos)
-            mode.pacmanXPos+=mode.dxPos
-            mode.pacmanYPos+=mode.dyPos
+            mode.legalDirections=mode.legalPlaces()
+            if mode.currDirection in mode.legalDirections:
+                mode.pacmanXPos+=mode.dxPos
+                mode.pacmanYPos+=mode.dyPos
             i=0
             while i<len(mode.points):
                 if ((mode.points[i].x-mode.pacmanXPos)**2+\
@@ -214,30 +230,33 @@ class OriginalGameMode(Mode):
                         mode.gameOver=True
                 i+=1
         else:
-            mode.movePacMan(0,0)
+            mode.dirPacMan(0,0)
 
-    def movePacMan(mode,dx,dy):
+    def dirPacMan(mode,dx,dy):
         mode.dxPos=dx
         mode.dyPos=dy
 
-    def illegalPlaces(mode,direction):
+    def legalPlaces(mode):
         for wall in mode.gameBoard.dimensions:
-            if direction=="y":
-                if mode.pacmanXPos+mode.radius>wall[0] and \
-                    mode.pacmanXPos-mode.radius<wall[0]+wall[2]:
-                    if (mode.pacmanYPos-mode.radius==wall[1]+wall[3] and \
-                        mode.direction=="up") or \
-                            (mode.pacmanYPos+mode.radius==wall[1] and \
-                                mode.direction=="down"):
-                                return True
-            elif direction=="x":
-                if mode.pacmanYPos+mode.radius>wall[1] and \
-                    mode.pacmanYPos-mode.radius<wall[1]+wall[3]:
-                    if (mode.pacmanXPos-mode.radius==wall[0]+wall[2] and \
-                        mode.direction=="left") or \
-                            (mode.pacmanXPos+mode.radius==wall[0] and \
-                                mode.direction=="right"):
-                                return True
+            if mode.pacmanXPos+mode.radius>wall[0] and \
+                mode.pacmanXPos-mode.radius<wall[0]+wall[2]:
+                if (mode.pacmanYPos-mode.radius==wall[1]+wall[3]):
+                    mode.legalDirections=["right","down","left"]
+                elif (mode.pacmanYPos+mode.radius==wall[1]):
+                    mode.legalDirections=["right","up","left"]
+                else:
+                    mode.legalDirections=["up","down","left","right"]
+            elif mode.pacmanYPos+mode.radius>wall[1] and \
+                mode.pacmanYPos-mode.radius<wall[1]+wall[3]:
+                if (mode.pacmanXPos-mode.radius==wall[0]+wall[2]):
+                    mode.legalDirections=["right","down","up"]
+                elif (mode.pacmanXPos+mode.radius==wall[0]):
+                    mode.legalDirections=["up","down","left"]
+                else:
+                    mode.legalDirections=["up","down","left","right"]
+            else:
+                mode.legalDirections=["up","down","left","right"]
+        return mode.legalDirections
 
     def drawCoins(mode):
         for x in range(50,750,50):
