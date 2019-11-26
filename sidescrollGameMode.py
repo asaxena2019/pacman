@@ -2,19 +2,22 @@ from cmu_112_graphics import *
 from pacman import *
 from ghost import *
 from points import *
-from originalBoard import *
+from sidescrollBoard import *
 from tkinter import *
 import random
 
 # animation framework attained from 
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
 
-# OriginalGameMode establishes original game mode with static board
-# if time permits, may add randomly generated board without side scroll
-class OriginalGameMode(Mode):
+# SidescrollGameMode will establish a randomly generated board every single time
+# a new game starts, will allow the user to travel off screen
+class SideScrollGameMode(Mode):
     def appStarted(mode):
         mode.radius=10
         mode.pointRadius=5
+        mode.margin=50
+        mode.scrollX=0
+        mode.scrollY=0
         mode.pacmanXPos,mode.pacmanYPos=mode.width/2,4*mode.height/5
         mode.pinkyGhostXPos,mode.pinkyGhostYPos=13*mode.width/30,7*mode.height/20
         mode.blinkyGhostXPos,mode.blinkyGhostYPos=13*mode.width/30,9*mode.height/20
@@ -31,12 +34,24 @@ class OriginalGameMode(Mode):
         mode.pinkDirection=mode.pinkyCurrDirection
         mode.legalPacDirections=["up","right","down","left"]
         mode.legalPinkyDirections=["up","right","down","left"]
-        mode.gameBoard=OriginalBoard(mode,mode.wallX,mode.wallY,\
+        mode.gameBoard=SideScrollBoard(mode,mode.wallX,mode.wallY,\
             mode.wallWidth,mode.wallHeight)
         mode.points=[]
         mode.drawCoins()
         mode.score=0
         mode.gameOver=False
+
+    # from 
+    # http://www.cs.cmu.edu/~112/notes/notes-animations-part2.html#sidescrollerExamples
+    def makePlayerVisible(mode):
+        if (mode.pacmanXPos < mode.scrollX + mode.margin):
+            mode.scrollX = mode.pacmanXPos - mode.margin
+        if (mode.pacmanXPos > mode.scrollX + mode.width - mode.margin):
+            mode.scrollX = mode.pacmanXPos - mode.width + mode.margin
+        if (mode.pacmanYPos < mode.scrollY + mode.margin):
+            mode.scrollY = mode.pacmanYPos - mode.margin
+        if (mode.pacmanXPos > mode.scrollY + mode.height - mode.margin):
+            mode.scrollY = mode.pacmanYPos - mode.height + mode.margin
 
     def keyPressed(mode,event):
         if mode.gameOver==False:
@@ -87,6 +102,7 @@ class OriginalGameMode(Mode):
             if mode.pacCurrDirection in mode.legalPacDirections:
                 mode.pacmanXPos+=mode.dxPacPos
                 mode.pacmanYPos+=mode.dyPacPos
+            mode.makePlayerVisible()
             mode.setPinkyDir()
             mode.legalPinkyDirections=mode.legalPlaces(mode.pinkyGhostXPos,mode.pinkyGhostYPos)
             if mode.pinkyCurrDirection in mode.legalPinkyDirections:
@@ -141,8 +157,8 @@ class OriginalGameMode(Mode):
         return legalDirections
 
     def drawCoins(mode):
-        for x in range(int(mode.wallX*10),int(mode.width-3*mode.wallWidth),int(mode.wallX*10)):
-            for y in range(int(mode.wallY*10),int(mode.height-3*mode.wallHeight),int(mode.wallY*10)):
+        for x in range(int(mode.wallX*10),int(2*(mode.width-3*mode.wallWidth)),int(mode.wallX*10)):
+            for y in range(int(mode.wallY*10),int(1.5*(mode.height-3*mode.wallHeight)),int(mode.wallY*10)):
                 mode.points.append(Points(x,y))
                 for wall in mode.gameBoard.dimensions:
                     for point in mode.points:
@@ -155,13 +171,28 @@ class OriginalGameMode(Mode):
     def redrawAll(mode,canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
         if mode.gameOver==False:
+            for wall in mode.gameBoard.board:
+                wall.x-=mode.scrollX
+                wall.y-=mode.scrollY
             mode.gameBoard.drawBoard(canvas)
             for coin in mode.points:
+                coin.x-=mode.scrollX
+                coin.y-=mode.scrollY
                 coin.drawPoints(canvas)
+            mode.pacmanXPos-=mode.scrollX
+            mode.pacmanYPos-=mode.scrollY
             PacMan(mode.pacmanXPos,mode.pacmanYPos).drawPacMan(canvas)
+            mode.blinkyGhostXPos-=mode.scrollX
+            mode.blinkyGhostYPos-=mode.scrollY
             Blinky(mode,mode.blinkyGhostXPos,mode.blinkyGhostYPos).drawGhost(canvas)
+            mode.pinkyGhostXPos-=mode.scrollX
+            mode.pinkyGhostYPos-=mode.scrollY
             Pinky(mode,mode.pinkyGhostXPos,mode.pinkyGhostYPos).drawGhost(canvas)
+            mode.inkyGhostXPos-=mode.scrollX
+            mode.inkyGhostYPos-=mode.scrollY
             Inky(mode,mode.inkyGhostXPos,mode.inkyGhostYPos).drawGhost(canvas)
+            mode.clydeGhostXPos-=mode.scrollX
+            mode.clydeGhostYPos-=mode.scrollY
             Clyde(mode,mode.clydeGhostXPos,mode.clydeGhostYPos).drawGhost(canvas)
             canvas.create_text(mode.width//2,15,text=f'Score:{mode.score}',\
                 fill="white")
