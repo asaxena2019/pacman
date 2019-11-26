@@ -2,6 +2,8 @@ from cmu_112_graphics import *
 from tkinter import *
 import random
 
+#TP1 Submission
+
 #CITE cmu graphics and tkinter
 
 # CITATION: http://www.cs.cmu.edu/~112/notes/notes-animations-part2.html
