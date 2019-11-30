@@ -4,18 +4,6 @@ from wall import *
 # animation framework attained from 
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
 
-# Wall class defines characteristics of walls and draws walls
-class Wall(Mode):
-    def __init__(self,x,y,width,height):
-        self.x=x
-        self.y=y
-        self.width=width
-        self.height=height
-        self.color="blue"
-    def drawWall(self,canvas):
-        canvas.create_rectangle(self.x,self.y,\
-            self.x+self.width,self.y+self.height,fill=self.color,width=0)
-
 # OriginalBoard class draws walls based on given dimensions
 # original board is static, and the dimensions and coordinates are predetermined
 class OriginalBoard(Wall):
@@ -69,3 +57,11 @@ class OriginalBoard(Wall):
     def drawBoard(self,canvas):
         for wall in self.board:
             wall.drawWall(canvas)
+    def drawCells(self,mode):
+        self.rows=mode.height//5
+        self.cols=mode.width//5
+        self.table=[[0]*self.cols for row in range(self.rows)]
+        for wall in mode.gameBoard.dimensions:
+            for row in range(int(wall[1])//5,int(wall[1])//5+int(wall[3])//5):
+                for col in range(int(wall[0])//5,int(wall[0])//5+int(wall[2])//5):
+                    pass
