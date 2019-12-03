@@ -4,18 +4,6 @@ from wall import *
 # animation framework attained from 
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
 
-# Wall class defines characteristics of walls and draws walls
-class Wall(Mode):
-    def __init__(self,x,y,width,height):
-        self.x=x
-        self.y=y
-        self.width=width
-        self.height=height
-        self.color="blue"
-    def drawWall(self,canvas):
-        canvas.create_rectangle(self.x,self.y,\
-            self.x+self.width,self.y+self.height,fill=self.color,width=0)
-
 # OriginalBoard class draws walls based on given dimensions
 # original board is static, and the dimensions and coordinates are predetermined
 class OriginalBoard(Wall):
@@ -46,8 +34,8 @@ class OriginalBoard(Wall):
         wall54=Wall(10*self.x+2*self.ratio1*mode.width,20*self.y+40*self.height,20*self.width,\
             10*self.height)
         #dash 
-        wallDash=Wall(10*self.x+45*self.width,20*self.y+20*self.width,\
-            20*self.width,10*self.height)
+        wallDash=Wall(10*self.x+50*self.width,20*self.y+20*self.width,\
+            10*self.width,10*self.height)
         #1
         wall12=Wall(80*self.x,20*self.y,10*self.width,50*self.height)
         #1
@@ -69,3 +57,12 @@ class OriginalBoard(Wall):
     def drawBoard(self,canvas):
         for wall in self.board:
             wall.drawWall(canvas)
+    def drawCells(self):
+        self.rows=500//50
+        self.cols=750//50
+        self.table=[[0]*self.cols for row in range(self.rows)]
+        for wall in self.dimensions:
+            for col in range(int(wall[0]),int(wall[0])+int(wall[2]),50):
+                for row in range(int(wall[1]),int(wall[1])+int(wall[3]),50):
+                    self.table[row//50][col//50]=1
+        return self.table

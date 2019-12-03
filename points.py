@@ -4,7 +4,7 @@ from cmu_112_graphics import *
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
 
 # Points class defines characteristics of points and draws points
-class Points(object):
+class Points(Mode):
     def __init__(self,x,y):
         self.x=x
         self.y=y

@@ -10,13 +10,15 @@ class SplashScreenMode(Mode):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
         font = 'Arial 26 bold'
         canvas.create_text(mode.width/2, mode.height/5, \
-            text='Pac Man', font=font, fill="white")
+            text='Pac-Man', font=font, fill="white")
         canvas.create_text(mode.width/2, mode.height/3, \
-            text='Press o to start!',font=font,fill="white")
+            text='Press o for original mode, s for sidescroll mode!',font=font,fill="white")
 
     def keyPressed(mode,event):
         if event.key=="o":
             mode.app.setActiveMode(mode.app.gameMode)
+        elif event.key=="s":
+            mode.app.setActiveMode(mode.app.scrollMode)
 
     #will add buttons to determine mode
     def mousePressed(mode,event):
