@@ -13,7 +13,7 @@ class Ghost(object):
         self.radius=10
         self.color=None
         self.dx,self.dy=0,-1*self.speed
-        self.currDirection=None
+        self.currDirection="down"
         self.direction=self.currDirection
         self.legalDirections=["up","right","down","left"]
         self.url="http://labs.phaser.io/assets/games/pacman/sprites32.png"
@@ -38,7 +38,7 @@ class Ghost(object):
         canvas.create_oval(self.x-self.radius,self.y-self.radius,\
             self.x+self.radius,self.y+self.radius,fill=self.color)
 
-# node class for a* path-finding for Blinky
+# node class for a* path-finding for Blinky and Inky
 # program attained from 
 # https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 
@@ -52,7 +52,131 @@ class Node(object):
     def __eq__(self, other):
         return (self.position == other.position)
 
+# calculates shortest length from Inky to the 100X100 area with the most points
+# astar attained from
+# https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
+class Inky(Ghost):
+    def __init__(self):
+        super().__init__()
+        self.color="aqua"
+    def astar(self,maze,start,end):
+        start=(int(start[0])//50,int(start[1])//50)
+        end=(int(end[0])//50,int(end[1])//50)
+        if(start[0] == end[0]) and (start[1] == end[1]):
+            return (0,0)
+        start_node = Node(None, start)
+        start_node.g = start_node.h = start_node.f = 0
+        end_node = Node(None, end)
+        end_node.g = end_node.h = end_node.f = 0
+        open_list = []
+        closed_list = []
+        open_list.append(start_node)
+        while len(open_list) > 0:
+            current_node = open_list[0]
+            current_index = 0
+            for index, item in enumerate(open_list):
+                if item.f < current_node.f:
+                    current_node = item
+                    current_index = index
+            open_list.pop(current_index)
+            closed_list.append(current_node)
+            if current_node == end_node:
+                path = []
+                current = current_node
+                while current is not None:
+                    path.append(current.position)
+                    current = current.parent
+                return path[::-1] # Return reversed path
+            children = []
+            for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0)]: # Adjacent squares
+                node_position = (current_node.position[0] + \
+                    new_position[0], current_node.position[1] + new_position[1])
+                if node_position[0] < 0 or node_position[1] < 0:
+                    continue
+                new_node = Node(current_node, node_position)
+                children.append(new_node)
+            for child in children:
+                for closed_child in closed_list:
+                    if child == closed_child:
+                        continue
+                child.g = current_node.g + 1
+                child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
+                child.f = child.g + child.h
+                for open_node in open_list:
+                    if child == open_node and child.g > open_node.g:
+                        continue
+                open_list.append(child)
+    def makePath(self,maze,x,y):
+        start=(self.x,self.y)
+        end=(x,y)
+        path=self.astar(maze,start,end)
+        return path
+    def moveGhost(self,path):
+        startPath=path[0]
+        target=path[1]
+        if target[0]-startPath[0]==0:
+            if startPath[1]<=target[1] or target[1]==0:
+                self.currDirection="down"
+            elif startPath[1]>target[1] or target[1]==10:
+                self.currDirection="up"
+        else:
+            if startPath[0]<=target[0] or target[0]==0:
+                self.currDirection="right"
+            elif startPath[0]>target[0] or target[0]==15:
+                self.currDirection="left"
+        self.dirSetter()
+        if self.currDirection in self.legalDirections:
+            self.x+=self.dx
+            self.y+=self.dy
+
+# determines direction based on Pinky's relative position to Pac-Man
+class Pinky(Ghost):
+    def __init__(self):
+        super().__init__()
+        self.color="pink"
+    def moveGhost(self,x,y): #x,y are Pac-Man's position
+        if self.currDirection in self.legalDirections:
+            if y<self.y:
+                if x<self.x:
+                    if self.x-x<self.y-y:
+                        self.currDirection="up"
+                    else:
+                        self.currDirection="left"
+                else:
+                    if x-self.x<self.y-y:
+                        self.currDirection="up"
+                    else:
+                        self.currDirection="right"
+            else:
+                if x<self.x:
+                    if self.x-x<y-self.y:
+                        self.currDirection="down"
+                    else:
+                        self.currDirection="left"
+                else:
+                    if x-self.x<y-self.y:
+                        self.currDirection="down"
+                    else:
+                        self.currDirection="right"
+        else:
+            if self.currDirection=="left" or self.currDirection=="right":
+                if y<self.y:
+                    self.currDirection="up"
+                else:
+                    self.currDirection="down"
+            elif self.currDirection=="up" or self.currDirection=="down":
+                if x<self.x:
+                    self.currDirection="left"
+                else:
+                    self.currDirection="right"
+        self.dirSetter()
+        if self.currDirection in self.legalDirections:
+            self.x+=self.dx
+            self.y+=self.dy
+
 # follows the shortest path to get to Pac-Man using a* for path-finding
+# astar attained from
+# https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 class Blinky(Ghost):
     def __init__(self):
         super().__init__()
@@ -104,6 +228,11 @@ class Blinky(Ghost):
                     if child == open_node and child.g > open_node.g:
                         continue
                 open_list.append(child)
+    def makePath(self,maze,x,y):
+        start=(self.x,self.y)
+        end=(x,y)
+        path=self.astar(maze,start,end)
+        return path
     def moveGhost(self,path):
         startPath=path[0]
         target=path[1]
@@ -122,13 +251,12 @@ class Blinky(Ghost):
             self.x+=self.dx
             self.y+=self.dy
 
-# determines direction based on Pinky's relative position to Pac-Man
-class Pinky(Ghost):
+# lame so follows Pinky
+class Clyde(Ghost):
     def __init__(self):
         super().__init__()
-        self.color="pink"
-        self.currDirection="down"
-    def moveGhost(self,x,y): #x,y are Pac-Man's position
+        self.color="orange"
+    def moveGhost(self,x,y): #x,y are Pinky's position:
         if self.currDirection in self.legalDirections:
             if y<self.y:
                 if x<self.x:
@@ -167,20 +295,3 @@ class Pinky(Ghost):
         if self.currDirection in self.legalDirections:
             self.x+=self.dx
             self.y+=self.dy
-
-class Inky(Ghost):
-    def __init__(self):
-        super().__init__()
-        self.color="aqua"
-    def moveGhost(self):
-        pass
-    # follows the shortest path from Blinky to two tiles next to Pac-Man and 
-    # doubles length in that direction
-
-class Clyde(Ghost):
-    def __init__(self):
-        super().__init__()
-        self.color="orange"
-    def moveGhost(self):
-        pass
-    # if less than 8 tiles away from Pac-Man, random mode but if not, same algorithm as Blinky
