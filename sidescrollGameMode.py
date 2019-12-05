@@ -1,31 +1,34 @@
 from cmu_112_graphics import *
 from pacman import *
-from ghost import *
+from ghostScroll import *
 from points import *
-from originalBoard import *
+from randomBoard import *
 from tkinter import *
 import random
 
 # animation framework attained from 
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
 
-# OriginalGameMode establishes original game mode with static board
-class OriginalGameMode(Mode):
+# SidescrollGameMode will establish a randomly generated board every single time
+# a new game starts, will allow the user to travel off screen
+class SideScrollGameMode(Mode):
     def appStarted(mode):
         mode.count=0
-        mode.inkyCount=0
-        mode.blinkyCount=0
         mode.timer=3
 
         mode.wallX,mode.wallY=mode.width/150,mode.height/100
         mode.wallWidth,mode.wallHeight=mode.width/150,mode.height/100
-        mode.gameBoard=OriginalBoard(mode,mode.wallX,mode.wallY,\
-            mode.wallWidth,mode.wallHeight)
+        mode.limitWidth=(2*mode.width-4*mode.wallX)
+        mode.limitHeight=(mode.height-4*mode.wallY)
+        mode.gameBoard=RandomBoard(mode,mode.wallX,mode.wallY,\
+            mode.wallWidth,mode.wallHeight,mode.limitWidth,mode.limitHeight)
         mode.maze=mode.gameBoard.drawCells(mode)
 
         mode.radius=10
         mode.pointRadius=5
         mode.speed=5
+        mode.scrollX=0
+        mode.margin=100
 
         mode.points=[]
         mode.areaCoords=dict()
@@ -45,11 +48,7 @@ class OriginalGameMode(Mode):
             life=PacMan()
             life.x,life.y=(i+1)*25,15
             mode.lives.append(life)
-
-        mode.pathInky=mode.inky.makePath(mode.maze,mode.freqX,mode.freqY)
-        mode.pathBlinky=\
-            mode.blinky.makePath(mode.maze,mode.pacman.x,mode.pacman.y)
-        
+       
         mode.score=0
         mode.gameOver=False
         mode.mute=False
@@ -82,15 +81,25 @@ class OriginalGameMode(Mode):
     def mousePressed(mode,event):
         if mode.gameOver==True:
             if event.x>550 and event.x<700 and event.y>450 and event.y<475:
-                mode.appStarted()
                 mode.app.setActiveMode(mode.app.splashScreenMode)
+                mode.appStarted()
+    
+    # from 
+    # http://www.cs.cmu.edu/~112/notes/notes-animations-part2.html#sidescrollerExamples
+    def makePlayerVisible(mode):
+        if (mode.pacman.x < mode.scrollX + mode.margin) and mode.pacman.currDirection=="left":
+            mode.scrollX = mode.pacman.x - mode.margin
+        elif (mode.pacman.x > mode.scrollX + mode.width - mode.margin) and mode.pacman.currDirection=="right":
+            mode.scrollX = mode.pacman.x - mode.width + mode.margin
+        else:
+            mode.scrollX=0
 
     def establishPlayerCoords(mode):
         mode.pacman.x,mode.pacman.y=mode.width/2,4*mode.height/5
-        mode.inky.x,mode.inky.y=13*mode.width/30,7*mode.height/20
-        mode.pinky.x,mode.pinky.y=2*mode.width/5,9*mode.height/20
-        mode.blinky.x,mode.blinky.y=13*mode.width/30,9*mode.height/20
-        mode.clyde.x,mode.clyde.y=7*mode.width/15,9*mode.height/20
+        mode.inky.x,mode.inky.y=mode.width/2,75
+        mode.pinky.x,mode.pinky.y=mode.width/2,50
+        mode.blinky.x,mode.blinky.y=mode.width/2-50,50
+        mode.clyde.x,mode.clyde.y=mode.width/2+50,50
 
     def distance(mode,w,x,y,z):
         return ((w-x)**2+(y-z)**2)**0.5
@@ -110,37 +119,22 @@ class OriginalGameMode(Mode):
             mode.timer=1
     
     def movePac(mode):
-        mode.pacman.legalDirections=mode.legalPlaces(mode.pacman.x,mode.pacman.y)
+        mode.pacman.legalDirections=\
+            mode.legalPlaces(mode.pacman.x,mode.pacman.y)
         mode.pacman.movePacMan()
 
     def moveInky(mode):
-        mode.inkyCount+=1
-        if mode.inkyCount==10:
-            mode.findMostPoints()
-            mode.pathInky=mode.inky.makePath(mode.maze,mode.freqX,mode.freqY)
-            if len(mode.pathInky)==2:
-                mode.pathInky=mode.inky.makePath\
-                    (mode.maze,(int(mode.freqX)+2)%15,(int(mode.freqY)+2)%10)
-            mode.inkyCount=0
         mode.inky.legalDirections=mode.legalPlaces(mode.inky.x,mode.inky.y)
-        mode.inky.moveGhost(mode.pathInky)
+        mode.inky.moveGhost(mode.ghosts,mode.pacman.x,mode.pacman.y)
     
     def moveBlinky(mode):
-        mode.blinkyCount+=1
-        if mode.blinkyCount==10:
-            mode.pathBlinky=mode.blinky.makePath\
-                (mode.maze,mode.pacman.x,mode.pacman.y)
-            if len(mode.pathBlinky)==2:
-                mode.pathBlinky=mode.blinky.makePath(mode.maze,\
-                    (int(mode.pacman.x)+2)%15,(int(mode.pacman.y)+2)%10)
-            mode.blinkyCount=0
         mode.blinky.legalDirections=\
             mode.legalPlaces(mode.blinky.x,mode.blinky.y)
-        mode.blinky.moveGhost(mode.pathBlinky)
+        mode.blinky.moveGhost(mode.ghosts,mode.pacman.x,mode.pacman.y)
 
     def movePinky(mode):
         mode.pinky.legalDirections=mode.legalPlaces(mode.pinky.x,mode.pinky.y)
-        mode.pinky.moveGhost(mode.pacman.x,mode.pacman.y)
+        mode.pinky.moveGhost(mode.ghosts,mode.pacman.x,mode.pacman.y)
 
     def moveClyde(mode):
         mode.clyde.legalDirections=mode.legalPlaces(mode.clyde.x,mode.clyde.y)
@@ -152,6 +146,7 @@ class OriginalGameMode(Mode):
             mode.count+=1
             if mode.count>60:
                 mode.movePac()
+                mode.makePlayerVisible()
                 mode.moveInky()
                 if mode.count>300:
                     mode.moveBlinky()
@@ -208,9 +203,9 @@ class OriginalGameMode(Mode):
 
     def drawCoins(mode):
         for x in range(int(mode.wallX*10),\
-            int(mode.width-3*mode.wallWidth),int(mode.wallX*10)):
+            int(mode.limitWidth+mode.wallWidth),int(mode.wallX*10)):
             for y in range(int(mode.wallY*10),\
-                int(mode.height-3*mode.wallHeight),int(mode.wallY*10)):
+                int(mode.limitHeight+mode.wallHeight),int(mode.wallY*10)):
                 mode.points.append(Points(x,y))
                 for wall in mode.gameBoard.dimensions:
                     for point in mode.points:
@@ -240,15 +235,25 @@ class OriginalGameMode(Mode):
         mode.freqY=(maxCoord[1]+maxCoord[3])//2
 
     def drawGame(mode,canvas):
+        for wall in mode.gameBoard.board:
+            wall.x-=mode.scrollX
+        for wall in mode.gameBoard.dimensions:
+            wall[0]-=mode.scrollX
         mode.gameBoard.drawBoard(canvas)
         for coin in mode.points:
+            coin.x-=mode.scrollX
             coin.drawPoints(canvas)
         for life in mode.lives:
             life.drawPacMan(canvas)
+        mode.pacman.x-=mode.scrollX
         mode.pacman.drawPacMan(canvas)
+        mode.blinky.x-=mode.scrollX
         mode.blinky.drawGhost(canvas)
+        mode.pinky.x-=mode.scrollX
         mode.pinky.drawGhost(canvas)
+        mode.inky.x-=mode.scrollX
         mode.inky.drawGhost(canvas)
+        mode.clyde.x-=mode.scrollX
         mode.clyde.drawGhost(canvas)
 
     def redrawAll(mode,canvas):
