@@ -2,15 +2,15 @@ from cmu_112_graphics import *
 from pacman import *
 from ghost import *
 from points import *
-from originalBoard import *
+from originalGameMode import*
+from randomBoard import *
 from tkinter import *
 import random
 
 # animation framework attained from 
 # http://www.cs.cmu.edu/~112/notes/notes-animations-part1.html
-
-# OriginalGameMode establishes original game mode with static board
-class OriginalGameMode(Mode):
+# SinglePlayerMode will establish a randomly generated board every single time
+class SinglePlayerMode(Mode):
     def appStarted(mode):
         mode.count=0
         mode.inkyCount=0
@@ -19,8 +19,10 @@ class OriginalGameMode(Mode):
 
         mode.wallX,mode.wallY=mode.width/150,mode.height/100
         mode.wallWidth,mode.wallHeight=mode.width/150,mode.height/100
-        mode.gameBoard=OriginalBoard(mode,mode.wallX,mode.wallY,\
-            mode.wallWidth,mode.wallHeight)
+        mode.limitWidth=(mode.width-4*mode.wallWidth)
+        mode.limitHeight=(mode.height-4*mode.wallHeight)
+        mode.gameBoard=RandomBoard(mode,mode.wallX,mode.wallY,\
+            mode.wallWidth,mode.wallHeight,mode.limitWidth,mode.limitHeight)
         mode.maze=mode.gameBoard.drawCells(mode)
 
         mode.radius=10
@@ -49,8 +51,8 @@ class OriginalGameMode(Mode):
         mode.pathInky=mode.inky.makePath(mode.maze,mode.freqX,mode.freqY)
         mode.pathBlinky=\
             mode.blinky.makePath(mode.maze,mode.pacman.x,mode.pacman.y)
-        
         mode.score=0
+        
         mode.gameOver=False
         mode.mute=False
 
@@ -72,8 +74,8 @@ class OriginalGameMode(Mode):
             elif event.key=="u":
                 mode.mute=False
             elif event.key=="h":
-                mode.appStarted()
                 mode.app.setActiveMode(mode.app.splashScreenMode)
+                mode.appStarted()
         else:
             if event.key=="r":
                 mode.appStarted()
@@ -82,15 +84,15 @@ class OriginalGameMode(Mode):
     def mousePressed(mode,event):
         if mode.gameOver==True:
             if event.x>550 and event.x<700 and event.y>450 and event.y<475:
-                mode.appStarted()
                 mode.app.setActiveMode(mode.app.splashScreenMode)
+                mode.appStarted()
 
     def establishPlayerCoords(mode):
         mode.pacman.x,mode.pacman.y=mode.width/2,4*mode.height/5
-        mode.inky.x,mode.inky.y=13*mode.width/30,7*mode.height/20
-        mode.pinky.x,mode.pinky.y=2*mode.width/5,9*mode.height/20
-        mode.blinky.x,mode.blinky.y=13*mode.width/30,9*mode.height/20
-        mode.clyde.x,mode.clyde.y=7*mode.width/15,9*mode.height/20
+        mode.inky.x,mode.inky.y=mode.width/2,75
+        mode.pinky.x,mode.pinky.y=mode.width/2,50
+        mode.blinky.x,mode.blinky.y=mode.width/2-50,50
+        mode.clyde.x,mode.clyde.y=mode.width/2+50,50
 
     def distance(mode,w,x,y,z):
         return ((w-x)**2+(y-z)**2)**0.5
@@ -279,3 +281,75 @@ class OriginalGameMode(Mode):
             canvas.create_rectangle(550,450,700,475,fill="blue")
             canvas.create_text(625,463,text='Home',font='Courier 14 bold',\
                 fill="white")
+"""
+class SinglePlayerMode(OriginalGameMode):
+    def appStarted(mode):
+        super().appStarted()
+
+        mode.wallX,mode.wallY=mode.width/150,mode.height/100
+        mode.wallWidth,mode.wallHeight=mode.width/150,mode.height/100
+        mode.limitWidth=(mode.width-4*mode.wallWidth)
+        mode.limitHeight=(mode.height-4*mode.wallHeight)
+        mode.gameBoard=RandomBoard(mode,mode.wallX,mode.wallY,\
+            mode.wallWidth,mode.wallHeight,mode.limitWidth,mode.limitHeight)
+        mode.maze=mode.gameBoard.drawCells(mode)
+
+    def keyPressed(mode,event):
+        super().keyPressed(event)
+    
+    def mousePressed(mode,event):
+        super().mousePressed(event)
+
+    def establishPlayerCoords(mode):
+        mode.pacman.x,mode.pacman.y=mode.width/2,475
+        mode.inky.x,mode.inky.y=mode.width/2,75
+        mode.pinky.x,mode.pinky.y=mode.width/2,50
+        mode.blinky.x,mode.blinky.y=mode.width/2-50,50
+        mode.clyde.x,mode.clyde.y=mode.width/2+50,50
+
+    def distance(mode,w,x,y,z):
+        super().distance()
+
+    def portal(mode):
+        super().portal()
+
+    def timerSetter(mode):
+        super().timerSetter()
+    
+    def movePac(mode):
+        super().movePac()
+
+    def moveInky(mode):
+        super().moveInky()
+    
+    def moveBlinky(mode):
+        super().moveBlinky()
+
+    def movePinky(mode):
+        super().movePinky()
+
+    def moveClyde(mode):
+        super().moveClyde()
+
+    def timerFired(mode):
+        super().timerFired()
+
+    def legalPlaces(mode,x,y):
+        super().legalPlaces(x,y)
+
+    def gameOverCheck(mode):
+        super().gameOverCheck()
+
+    def drawCoins(mode):
+        super().drawCoins()
+
+    def findMostPoints(mode):
+        super().findMostPoints()
+
+    def drawGame(mode,canvas):
+        super().drawGame(canvas)
+
+    def redrawAll(mode,canvas):
+        super().redrawAll(canvas)
+
+"""
